@@ -98,7 +98,7 @@ export default function SignUp() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#111827',
   },
   backButton: {
     position: 'absolute',

@@ -2,16 +2,18 @@ import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { MessageSquare } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 export default function ChatButton() {
   const router = useRouter();
+  const tabBarHeight = useBottomTabBarHeight(); // dynamically get bottom bar height
 
   const handlePress = () => {
     router.push('/chat');
   };
 
   return (
-    <Pressable style={styles.button} onPress={handlePress}>
+    <Pressable style={[styles.button, { bottom: tabBarHeight + 24 }]} onPress={handlePress}>
       <MessageSquare color="#fff" size={24} />
     </Pressable>
   );
@@ -20,7 +22,6 @@ export default function ChatButton() {
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: 24,
     right: 24,
     backgroundColor: '#0066cc',
     width: 56,
@@ -36,5 +37,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    zIndex: 100, // optional: keeps it on top
   },
 });

@@ -61,12 +61,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
-        options={{
-          title: 'History',
-          tabBarIcon: ({ focused }) => <TabBarIcon Icon={Clock} focused={focused} />,
-        }}
-      />
+  name="history"
+  options={{
+    href: null, // This hides it from the tab bar
+  }}
+/>
+
       <Tabs.Screen
         name="settings"
         options={{

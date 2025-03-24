@@ -1,7 +1,18 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, Pressable, ActivityIndicator } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Pressable,
+  ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { Text } from 'react-native';
 import { MessageSquare, Send } from 'lucide-react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 interface Message {
   id: string;
@@ -9,7 +20,7 @@ interface Message {
   isUser: boolean;
 }
 
-const BASE_URL = "http://localhost:8000"; // Replace with your backend URL if running on a different machine
+const BASE_URL = "http://localhost:8000"; // Update this for actual server address
 
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([
@@ -21,49 +32,40 @@ export default function ChatScreen() {
   ]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const handleSend = async () => {
     if (!inputText.trim()) return;
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputText,
+      text: inputText.trim(),
       isUser: true,
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInputText('');
     setLoading(true);
+    Keyboard.dismiss(); // Hide keyboard
 
     try {
-      // Call the backend API
       const response = await fetch(`${BASE_URL}/ai/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          user_query: userMessage.text,
-        }),
+        body: JSON.stringify({ user_query: userMessage.text }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const botMessage: Message = {
-          id: Date.now().toString(),
-          text: data.response, // Use the parsed response from the backend
-          isUser: false,
-        };
-        setMessages((prev) => [...prev, botMessage]);
-      } else {
-        const botMessage: Message = {
-          id: Date.now().toString(),
-          text: 'Sorry, something went wrong. Please try again later.',
-          isUser: false,
-        };
-        setMessages((prev) => [...prev, botMessage]);
-      }
+      const botMessage: Message = {
+        id: Date.now().toString(),
+        text: response.ok
+          ? (await response.json()).response
+          : 'Sorry, something went wrong. Please try again later.',
+        isUser: false,
+      };
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       const botMessage: Message = {
         id: Date.now().toString(),
@@ -76,51 +78,68 @@ export default function ChatScreen() {
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <MessageSquare color="#fff" size={24} />
-        <Text style={styles.headerText}>Car Diagnostic Assistant</Text>
-      </View>
+  useEffect(() => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }, [messages]);
 
-      <ScrollView style={styles.messagesContainer}>
-        {messages.map((message) => (
-          <View
-            key={message.id}
-            style={[
-              styles.messageBubble,
-              message.isUser ? styles.userMessage : styles.botMessage,
-            ]}
-          >
-            <Text
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={tabBarHeight}
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <MessageSquare color="#fff" size={24} />
+          <Text style={styles.headerText}>Car Diagnostic Assistant</Text>
+        </View>
+
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          contentContainerStyle={{ paddingBottom: tabBarHeight + 20 }}
+        >
+          {messages.map((message) => (
+            <View
+              key={message.id}
               style={[
-                styles.messageText,
-                message.isUser ? styles.userMessageText : styles.botMessageText,
+                styles.messageBubble,
+                message.isUser ? styles.userMessage : styles.botMessage,
               ]}
             >
-              {message.text}
-            </Text>
-          </View>
-        ))}
-        {loading && (
-          <ActivityIndicator size="small" color="#0066cc" style={{ marginTop: 10 }} />
-        )}
-      </ScrollView>
+              <Text
+                style={[
+                  styles.messageText,
+                  message.isUser ? styles.userMessageText : styles.botMessageText,
+                ]}
+              >
+                {message.text}
+              </Text>
+            </View>
+          ))}
+          {loading && (
+            <ActivityIndicator size="small" color="#0066cc" style={{ marginTop: 10 }} />
+          )}
+        </ScrollView>
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="Type your message..."
-          placeholderTextColor="#666"
-          multiline
-        />
-        <Pressable onPress={handleSend} style={styles.sendButton}>
-          <Send color="#fff" size={20} />
-        </Pressable>
+        <View style={[styles.inputContainer, { marginBottom: tabBarHeight }]}>
+          <TextInput
+            style={styles.input}
+            value={inputText}
+            onChangeText={setInputText}
+            placeholder="Type your message..."
+            placeholderTextColor="#666"
+            multiline
+            onSubmitEditing={handleSend}
+            blurOnSubmit={false}
+            returnKeyType="send"
+          />
+          <Pressable onPress={handleSend} style={styles.sendButton}>
+            <Send color="#fff" size={20} />
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -1,19 +1,32 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { TriangleAlert as AlertTriangle, Wrench, Youtube, Calendar } from 'lucide-react-native';
+import {
+  TriangleAlert as AlertTriangle,
+  Wrench,
+  Youtube,
+  Calendar,
+} from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-const BASE_URL = "http://localhost:8000"; // Replace with your backend URL if running on a different machine
+const BASE_URL = 'http://localhost:8000'; // Replace with your backend URL
 
 const ErrorCode = ({ code, title, description, severity }: any) => (
-  <TouchableOpacity style={styles.errorContainer}>
+  <TouchableOpacity style={styles.cardContainer}>
     <LinearGradient
       colors={[
         severity === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)',
         severity === 'high' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(59, 130, 246, 0.05)',
       ]}
-      style={styles.errorGradient}>
+      style={styles.errorGradient}
+    >
       <View style={styles.errorHeader}>
         <AlertTriangle
           size={24}
@@ -21,10 +34,14 @@ const ErrorCode = ({ code, title, description, severity }: any) => (
         />
         <View style={styles.errorTitleContainer}>
           <Text style={styles.errorCode}>{code}</Text>
-          <Text style={styles.errorTitle}>{title}</Text>
+          <Text style={styles.errorTitle} numberOfLines={1} ellipsizeMode="tail">
+            {title}
+          </Text>
         </View>
       </View>
-      <Text style={styles.errorDescription}>{description}</Text>
+      <Text style={styles.errorDescription} numberOfLines={3} ellipsizeMode="tail">
+        {description}
+      </Text>
       <View style={styles.actionButtons}>
         <TouchableOpacity style={styles.actionButton}>
           <Wrench size={20} color="#3B82F6" />
@@ -32,11 +49,11 @@ const ErrorCode = ({ code, title, description, severity }: any) => (
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton}>
           <Youtube size={20} color="#3B82F6" />
-          <Text style={styles.actionButtonText}>Watch Tutorial</Text>
+          <Text style={styles.actionButtonText}>Watch</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton}>
           <Calendar size={20} color="#3B82F6" />
-          <Text style={styles.actionButtonText}>Schedule Service</Text>
+          <Text style={styles.actionButtonText}>Service</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>
@@ -50,11 +67,11 @@ export default function DiagnosticsScreen() {
 
   const fetchDiagnostics = async () => {
     try {
-      setError(null); // Clear any previous errors
+      setError(null);
       const response = await fetch(`${BASE_URL}/ai/diagnostics`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       });
 
@@ -62,12 +79,10 @@ export default function DiagnosticsScreen() {
         const data = await response.json();
         setDiagnostics(data);
       } else {
-        console.error("Failed to fetch diagnostics:", response.statusText);
-        setError("Failed to fetch diagnostics.");
+        setError('Failed to fetch diagnostics.');
       }
     } catch (err) {
-      console.error("Error fetching diagnostics:", err);
-      setError("Error fetching diagnostics.");
+      setError('Error fetching diagnostics.');
     } finally {
       setLoading(false);
     }
@@ -75,20 +90,15 @@ export default function DiagnosticsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      // Fetch diagnostics immediately when the tab is focused
       fetchDiagnostics();
-
-      // Set up polling to fetch diagnostics every 30 seconds
       const interval = setInterval(fetchDiagnostics, 30000);
-
-      // Cleanup interval when the tab is unfocused
       return () => clearInterval(interval);
     }, [])
   );
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.fullScreenCenter}>
         <ActivityIndicator size="large" color="#3B82F6" />
         <Text style={styles.loadingText}>Loading Diagnostics...</Text>
       </View>
@@ -97,7 +107,7 @@ export default function DiagnosticsScreen() {
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
+      <View style={styles.fullScreenCenter}>
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
@@ -105,7 +115,7 @@ export default function DiagnosticsScreen() {
 
   if (!diagnostics || !diagnostics.warnings) {
     return (
-      <View style={styles.errorContainer}>
+      <View style={styles.fullScreenCenter}>
         <Text style={styles.errorText}>No diagnostics available at the moment.</Text>
       </View>
     );
@@ -124,10 +134,10 @@ export default function DiagnosticsScreen() {
         {diagnostics.warnings.map((warning: any, index: number) => (
           <ErrorCode
             key={index}
-            code={warning.code || "N/A"}
-            title={warning.title || "Unknown Issue"}
-            description={warning.description || "No details available."}
-            severity={warning.severity || "medium"}
+            code={warning.code || 'N/A'}
+            title={warning.title || 'Unknown Issue'}
+            description={warning.description || 'No details available.'}
+            severity={warning.severity || 'medium'}
           />
         ))}
       </ScrollView>
@@ -142,6 +152,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
@@ -166,7 +177,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 14,
   },
-  errorContainer: {
+
+  // 🔧 Card Styles
+  cardContainer: {
     marginBottom: 16,
     borderRadius: 16,
     overflow: 'hidden',
@@ -174,6 +187,9 @@ const styles = StyleSheet.create({
   errorGradient: {
     padding: 16,
     backgroundColor: 'rgba(30, 41, 59, 0.7)',
+    minHeight: 180,
+    justifyContent: 'space-between',
+    borderRadius: 16,
   },
   errorHeader: {
     flexDirection: 'row',
@@ -182,6 +198,7 @@ const styles = StyleSheet.create({
   },
   errorTitleContainer: {
     marginLeft: 12,
+    flex: 1,
   },
   errorCode: {
     fontSize: 14,
@@ -200,17 +217,21 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     marginBottom: 16,
   },
+
+  // 🔧 Action Buttons
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   actionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 12,
+    marginHorizontal: 4,
   },
   actionButtonText: {
     color: '#3B82F6',
@@ -218,25 +239,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 6,
   },
-  loadingContainer: {
+
+  // 🔧 Loading & Error Screens
+  fullScreenCenter: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#111827',
+    paddingHorizontal: 20,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
     color: '#FFFFFF',
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#111827',
-  },
   errorText: {
     fontSize: 16,
     color: '#FF6B6B',
+    textAlign: 'center',
   },
 });

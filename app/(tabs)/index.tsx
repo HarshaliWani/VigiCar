@@ -3,6 +3,7 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { Thermometer, Gauge, Battery, Droplet, Bluetooth, TriangleAlert as AlertTriangle, CircleGauge as GaugeCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import ChatButton from '@/components/ChatButton';
 
 const DataCard = ({ title, value, unit, Icon }: any) => (
   <View style={styles.cardContainer}>
@@ -90,7 +91,11 @@ export default function Dashboard() {
           />
         </View>
       </ScrollView>
+      
+      
+      <ChatButton />
     </View>
+    
   );
 }
 

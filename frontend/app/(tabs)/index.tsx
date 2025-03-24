@@ -4,8 +4,9 @@ import { useRouter } from 'expo-router';
 import { Thermometer, Gauge, Battery, Droplet, Bluetooth, TriangleAlert as AlertTriangle, CircleGauge as GaugeCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ChatButton from '@/components/ChatButton';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { OBDService, OBDData } from '../services/obd.service';
+import { useFocusEffect } from '@react-navigation/native';
 
 const DataCard = ({ title, value, unit, Icon }: any) => (
   <View style={styles.cardContainer}>
@@ -53,33 +54,46 @@ export default function Dashboard() {
   const [isConnected, setIsConnected] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  useEffect(() => {
-    const initOBD = async () => {
-      try {
-        const response = await OBDService.connect();
-        setIsConnected(response.status === 'connected');
-      } catch (err) {
-        setIsConnected(false);
-      }
-    };
-    initOBD();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await OBDService.getData();
-        setObdData(data);
-        setHasError(false);
-      } catch (err) {
-        setHasError(true);
-        console.error('Error fetching OBD data:', err);
-      }
-    };
+      const initOBD = async () => {
+        try {
+          if (mounted) {
+            const response = await OBDService.connect();
+            setIsConnected(response.status === 'connected');
+          }
+        } catch (err) {
+          if (mounted) {
+            setIsConnected(false);
+          }
+        }
+      };
 
-    const interval = setInterval(fetchData, 1000);
-    return () => clearInterval(interval);
-  }, []);
+      initOBD();
+
+      const interval = setInterval(async () => {
+        try {
+          if (mounted) {
+            const data = await OBDService.getData();
+            setObdData(data);
+            setHasError(false);
+          }
+        } catch (err) {
+          if (mounted) {
+            setHasError(true);
+            console.error('Error fetching OBD data:', err);
+          }
+        }
+      }, 3000);
+
+      return () => {
+        mounted = false;
+        clearInterval(interval);
+      };
+    }, [])
+  );
 
   return (
     <View style={styles.container}>

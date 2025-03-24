@@ -13,14 +13,14 @@ import {
 import { Text } from 'react-native';
 import { MessageSquare, Send } from 'lucide-react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import axios from 'axios';
+import { BASE_URL } from '../services/obd.service';
 
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
 }
-
-const BASE_URL = "http://localhost:8000"; // Update this for actual server address
 
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([
@@ -50,19 +50,13 @@ export default function ChatScreen() {
     Keyboard.dismiss(); // Hide keyboard
 
     try {
-      const response = await fetch(`${BASE_URL}/ai/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_query: userMessage.text }),
+      const { data } = await axios.post(`${BASE_URL}/ai/chat`, {
+        user_query: userMessage.text
       });
 
       const botMessage: Message = {
         id: Date.now().toString(),
-        text: response.ok
-          ? (await response.json()).response
-          : 'Sorry, something went wrong. Please try again later.',
+        text: data.response,
         isUser: false,
       };
       setMessages((prev) => [...prev, botMessage]);

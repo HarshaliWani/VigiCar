@@ -2,7 +2,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from
 import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart } from 'react-native-chart-kit';
 import { Compass as GasPump, TrendingUp, DollarSign, MapPin, Plus } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { screens } from '../constants/screens';
 import { Card } from '../components/ui/card';
 import { ListItem } from '../components/ui/list-item';
@@ -53,14 +54,26 @@ export default function FuelScreen() {
 
   const [obdData, setObdData] = useState<OBDData | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await OBDService.getData();
-      setObdData(data);
-    };
-    const interval = setInterval(fetchData, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     let mounted = true;
+  //     const interval = setInterval(async () => {
+  //       try {
+  //         if (mounted) {
+  //           const data = await OBDService.getData();
+  //           setObdData(data);
+  //         }
+  //       } catch (err) {
+  //         console.error('Error fetching OBD data:', err);
+  //       }
+  //     }, 1000);
+
+  //     return () => {
+  //       mounted = false;
+  //       clearInterval(interval);
+  //     };
+  //   }, [])
+  // );
 
   return (
     <ScrollView style={screens.screen}>

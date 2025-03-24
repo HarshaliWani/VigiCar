@@ -12,11 +12,16 @@ class Settings(BaseSettings):
     MONITORING_INTERVAL: float = 0.5  # Seconds between updates
     MONITOR_CONTINUOUSLY: bool = True  # Enable continuous monitoring
     SCAN_ALL_PIDS: bool = True  # Enable scanning all supported PIDs
-    GROQ_API_KEY_INSIGHTS: str
-    GROQ_API_KEY_DIAGNOSTICS: str
-    GROQ_API_KEY_CHAT: str
+    GROQ_API_KEY_INSIGHTS: str = ""
+    GROQ_API_KEY_DIAGNOSTICS: str = ""
+    GROQ_API_KEY_CHAT: str = ""
+
+    def validate_api_keys(self):
+        if not self.GROQ_API_KEY_INSIGHTS or not self.GROQ_API_KEY_DIAGNOSTICS or not self.GROQ_API_KEY_CHAT:
+            raise ValueError("Missing required Groq API keys. Please check your environment variables or .env file.")
 
     class Config:
         env_file = ".env"
+        env_file_encoding = 'utf-8'
 
 settings = Settings()

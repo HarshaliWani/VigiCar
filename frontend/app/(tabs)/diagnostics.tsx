@@ -15,8 +15,8 @@ import {
   Calendar,
 } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
-
-const BASE_URL = 'http://localhost:8000'; // Replace with your backend URL
+import axios from 'axios';
+import { BASE_URL } from '../services/obd.service';
 
 const ErrorCode = ({ code, title, description, severity }: any) => (
   <TouchableOpacity style={styles.cardContainer}>
@@ -65,34 +65,36 @@ export default function DiagnosticsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDiagnostics = async () => {
+  const fetchDiagnostics = async (mounted: boolean) => {
     try {
       setError(null);
-      const response = await fetch(`${BASE_URL}/ai/diagnostics`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      const { data } = await axios.post(`${BASE_URL}/ai/diagnostics`);
+      if (mounted) {
         setDiagnostics(data);
-      } else {
-        setError('Failed to fetch diagnostics.');
       }
-    } catch (err) {
-      setError('Error fetching diagnostics.');
+    } catch (error) {
+      if (mounted) {
+        console.error("Error fetching diagnostics:", error);
+        setError('Error fetching diagnostics.');
+      }
     } finally {
-      setLoading(false);
+      if (mounted) {
+        setLoading(false);
+      }
     }
   };
 
+
   useFocusEffect(
     useCallback(() => {
-      fetchDiagnostics();
-      const interval = setInterval(fetchDiagnostics, 30000);
-      return () => clearInterval(interval);
+      let mounted = true;
+      fetchDiagnostics(mounted);
+      const interval = setInterval(() => fetchDiagnostics(mounted), 30000);
+      
+      return () => {
+        mounted = false;
+        clearInterval(interval);
+      };
     }, [])
   );
 

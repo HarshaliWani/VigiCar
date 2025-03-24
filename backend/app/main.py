@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .services.obd_service import OBDService
@@ -9,6 +10,14 @@ from typing import Dict, Any
 
 
 app = FastAPI(title="VigiCar OBD API")
+
+# Validate API keys on startup
+try:
+    settings.validate_api_keys()
+except ValueError as e:
+    print(f"Configuration Error: {str(e)}")
+    import sys
+    sys.exit(1)
 
 # Configure CORS
 app.add_middleware(

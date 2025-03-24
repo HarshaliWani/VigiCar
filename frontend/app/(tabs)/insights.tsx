@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator } fro
 import { Trophy, Leaf, Gauge } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
-
-const BASE_URL = "http://localhost:8000"; // Replace with your backend URL if running on a different machine
+import axios from 'axios';
+import { BASE_URL } from '../services/obd.service';
 
 const ScoreCard = ({ title, score, Icon }: any) => (
   <View style={styles.scoreContainer}>
@@ -25,23 +25,11 @@ export default function InsightsScreen() {
 
   const fetchInsights = async () => {
     try {
-      setError(null); // Clear any previous errors
-      const response = await fetch(`${BASE_URL}/ai/insights`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setInsights(data);
-      } else {
-        console.error("Failed to fetch insights:", response.statusText);
-        setError("Failed to fetch insights.");
-      }
-    } catch (err) {
-      console.error("Error fetching insights:", err);
+      setError(null);
+      const { data } = await axios.post(`${BASE_URL}/ai/insights`);
+      setInsights(data);
+    } catch (error) {
+      console.error("Error fetching insights:", error);
       setError("Error fetching insights.");
     } finally {
       setLoading(false);

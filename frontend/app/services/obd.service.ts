@@ -1,4 +1,6 @@
-const BASE_URL = "http://192.168.1.119:8000"; // Replace with your computer's local IP
+import axios from 'axios';
+
+export const BASE_URL = "http://192.168.0.112:8000" 
 
 export interface OBDData {
   speed?: number;
@@ -40,8 +42,7 @@ export interface OBDData {
 export class OBDService {
   static async connect(): Promise<{ status: string; message?: string }> {
     try {
-      const response = await fetch(`${BASE_URL}/connect`);
-      const data = await response.json();
+      const { data } = await axios.get(`${BASE_URL}/connect`);
       return data;
     } catch (error) {
       console.error('Connection error:', error);
@@ -51,11 +52,7 @@ export class OBDService {
 
   static async getData(): Promise<OBDData> {
     try {
-      const response = await fetch(`${BASE_URL}/data`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch OBD data');
-      }
-      const data = await response.json();
+      const { data } = await axios.get(`${BASE_URL}/data`);
       return data;
     } catch (error) {
       console.error('Error fetching OBD data:', error);
@@ -65,8 +62,7 @@ export class OBDService {
 
   static async getSupportedCommands(): Promise<any[]> {
     try {
-      const response = await fetch(`${BASE_URL}/supported`);
-      const data = await response.json();
+      const { data } = await axios.get(`${BASE_URL}/supported`);
       return data;
     } catch (error) {
       console.error('Error fetching supported commands:', error);

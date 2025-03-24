@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     MONITORING_INTERVAL: float = 0.5  # Seconds between updates
     MONITOR_CONTINUOUSLY: bool = True  # Enable continuous monitoring
     SCAN_ALL_PIDS: bool = True  # Enable scanning all supported PIDs
+    GROQ_API_KEY_INSIGHTS: str
+    GROQ_API_KEY_DIAGNOSTICS: str
+    GROQ_API_KEY_CHAT: str
 
     class Config:
         env_file = ".env"

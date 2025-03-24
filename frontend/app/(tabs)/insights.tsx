@@ -1,7 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import { Trophy, Leaf, Gauge } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+
+const BASE_URL = "http://localhost:8000"; // Replace with your backend URL if running on a different machine
 
 const ScoreCard = ({ title, score, Icon }: any) => (
   <View style={styles.scoreContainer}>
@@ -16,68 +19,108 @@ const ScoreCard = ({ title, score, Icon }: any) => (
 );
 
 export default function InsightsScreen() {
-  const chartData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        data: [25, 28, 32, 30, 35, 27, 29],
-        color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-        strokeWidth: 2,
-      },
-    ],
+  const [insights, setInsights] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchInsights = async () => {
+    try {
+      setError(null); // Clear any previous errors
+      const response = await fetch(`${BASE_URL}/ai/insights`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setInsights(data);
+      } else {
+        console.error("Failed to fetch insights:", response.statusText);
+        setError("Failed to fetch insights.");
+      }
+    } catch (err) {
+      console.error("Error fetching insights:", err);
+      setError("Error fetching insights.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      // Fetch insights immediately when the tab is focused
+      fetchInsights();
+
+      // Set up polling to fetch insights every 30 seconds
+      const interval = setInterval(fetchInsights, 30000);
+
+      // Cleanup interval when the tab is unfocused
+      return () => clearInterval(interval);
+    }, [])
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text style={styles.loadingText}>Loading Insights...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (!insights) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>No insights available at the moment.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Insights</Text>
 
+        {/* Score Grid */}
         <View style={styles.scoreGrid}>
-          <ScoreCard title="Driving Score" score="85" Icon={Trophy} />
-          <ScoreCard title="Eco Score" score="92" Icon={Leaf} />
-          <ScoreCard title="Safety Score" score="88" Icon={Gauge} />
+          <ScoreCard title="Driving Score" score={insights.driving_score || "N/A"} Icon={Trophy} />
+          <ScoreCard title="Eco Score" score={insights.eco_score || "N/A"} Icon={Leaf} />
+          <ScoreCard title="Safety Score" score={insights.safety_score || "N/A"} Icon={Gauge} />
         </View>
 
+        {/* Engine Health */}
         <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>Fuel Efficiency (MPG)</Text>
-          <LineChart
-            data={chartData}
-            width={Dimensions.get('window').width - 32}
-            height={220}
-            chartConfig={{
-              backgroundColor: 'rgba(30, 41, 59, 0.7)',
-              backgroundGradientFrom: 'rgba(30, 41, 59, 0.7)',
-              backgroundGradientTo: 'rgba(30, 41, 59, 0.7)',
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-              propsForDots: {
-                r: '6',
-                strokeWidth: '2',
-                stroke: '#3B82F6',
-              },
-            }}
-            bezier
-            style={styles.chart}
-          />
+          <Text style={styles.chartTitle}>Engine Health</Text>
+          <Text style={styles.chartValue}>{insights.engine_health || "N/A"}</Text>
         </View>
 
+        {/* Driving Tips */}
         <View style={styles.tipsContainer}>
           <Text style={styles.tipsTitle}>Driving Tips</Text>
-          <View style={styles.tipCard}>
-            <LinearGradient
-              colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
-              style={styles.tipGradient}>
-              <Text style={styles.tipTitle}>Smooth Acceleration</Text>
-              <Text style={styles.tipDescription}>
-                Gradual acceleration can improve fuel efficiency by up to 20%. Try to accelerate smoothly
-                and avoid sudden changes in speed.
-              </Text>
-            </LinearGradient>
-          </View>
+          {Array.isArray(insights.driving_tips) && insights.driving_tips.length > 0 ? (
+            insights.driving_tips.map((tip: any, index: number) => (
+              <View key={index} style={styles.tipCard}>
+                <LinearGradient
+                  colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
+                  style={styles.tipGradient}>
+                  <Text style={styles.tipTitle}>{tip.tip || "No Tip Available"}</Text>
+                  <Text style={styles.tipDescription}>{tip.details || "No Details Available"}</Text>
+                </LinearGradient>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.errorText}>No driving tips available at the moment.</Text>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -141,9 +184,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 16,
   },
-  chart: {
-    marginVertical: 8,
-    borderRadius: 16,
+  chartValue: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
   tipsContainer: {
     marginBottom: 24,
@@ -157,6 +202,7 @@ const styles = StyleSheet.create({
   tipCard: {
     borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 16,
   },
   tipGradient: {
     padding: 16,
@@ -173,5 +219,26 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#94A3B8',
     lineHeight: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#111827',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#111827',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#FF6B6B',
   },
 });

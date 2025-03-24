@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.0.112:8000"; // Replace with your computer's local IP
+const BASE_URL = "http://192.168.1.119:8000"; // Replace with your computer's local IP
 
 export interface OBDData {
   speed?: number;

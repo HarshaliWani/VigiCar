@@ -1,7 +1,6 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native';
-import { useState } from 'react';
 import { MessageSquare, Send } from 'lucide-react-native';
 
 interface Message {
@@ -9,6 +8,8 @@ interface Message {
   text: string;
   isUser: boolean;
 }
+
+const BASE_URL = "http://localhost:8000"; // Replace with your backend URL if running on a different machine
 
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([
@@ -19,8 +20,9 @@ export default function ChatScreen() {
     },
   ]);
   const [inputText, setInputText] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputText.trim()) return;
 
     // Add user message
@@ -32,16 +34,46 @@ export default function ChatScreen() {
 
     setMessages((prev) => [...prev, userMessage]);
     setInputText('');
+    setLoading(true);
 
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      // Call the backend API
+      const response = await fetch(`${BASE_URL}/ai/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_query: userMessage.text,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const botMessage: Message = {
+          id: Date.now().toString(),
+          text: data.response, // Use the parsed response from the backend
+          isUser: false,
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } else {
+        const botMessage: Message = {
+          id: Date.now().toString(),
+          text: 'Sorry, something went wrong. Please try again later.',
+          isUser: false,
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }
+    } catch (error) {
       const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "I'll help you diagnose your car's issue. Could you describe the problem you're experiencing?",
+        id: Date.now().toString(),
+        text: 'Sorry, I could not connect to the server. Please try again later.',
         isUser: false,
       };
       setMessages((prev) => [...prev, botMessage]);
-    }, 1000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,7 +82,7 @@ export default function ChatScreen() {
         <MessageSquare color="#fff" size={24} />
         <Text style={styles.headerText}>Car Diagnostic Assistant</Text>
       </View>
-      
+
       <ScrollView style={styles.messagesContainer}>
         {messages.map((message) => (
           <View
@@ -60,14 +92,19 @@ export default function ChatScreen() {
               message.isUser ? styles.userMessage : styles.botMessage,
             ]}
           >
-            <Text style={[
-              styles.messageText,
-              message.isUser ? styles.userMessageText : styles.botMessageText
-            ]}>
+            <Text
+              style={[
+                styles.messageText,
+                message.isUser ? styles.userMessageText : styles.botMessageText,
+              ]}
+            >
               {message.text}
             </Text>
           </View>
         ))}
+        {loading && (
+          <ActivityIndicator size="small" color="#0066cc" style={{ marginTop: 10 }} />
+        )}
       </ScrollView>
 
       <View style={styles.inputContainer}>

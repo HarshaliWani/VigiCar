@@ -1,6 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Car, Calendar, PenTool as Tool, TriangleAlert as AlertTriangle, Plus } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+import { screens } from '../constants/screens';
+import { Card } from '../components/ui/card';
+import { ListItem } from '../components/ui/list-item';
+import { OBDService, OBDData } from '../services/obd.service';
 
 const VehicleCard = ({ name, model, year, image, nextService, alerts }: any) => (
   <TouchableOpacity style={styles.vehicleContainer}>
@@ -46,9 +51,20 @@ const MaintenanceReminder = ({ title, date, type }: any) => (
 );
 
 export default function VehiclesScreen() {
+  const [obdData, setObdData] = useState<OBDData | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await OBDService.getData();
+      setObdData(data);
+    };
+    const interval = setInterval(fetchData, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ScrollView style={screens.screen}>
+      <View style={screens.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Vehicles</Text>
           <TouchableOpacity style={styles.addButton}>
@@ -93,8 +109,40 @@ export default function VehiclesScreen() {
           date="April 15, 2024"
           type="Routine"
         />
-      </ScrollView>
-    </View>
+
+        <Card>
+          <Card.Header title="Vehicle Status" />
+          <Card.Content>
+            <ListItem 
+              label="Speed" 
+              value={obdData?.speed ? `${obdData.speed.toFixed(1)} km/h` : '-'} 
+            />
+            <ListItem 
+              label="Engine RPM" 
+              value={obdData?.rpm ? `${obdData.rpm.toFixed(0)} RPM` : '-'} 
+            />
+            <ListItem 
+              label="Engine Load" 
+              value={obdData?.engine_load ? `${obdData.engine_load.toFixed(1)}%` : '-'} 
+            />
+          </Card.Content>
+        </Card>
+
+        <Card>
+          <Card.Header title="Temperature" />
+          <Card.Content>
+            <ListItem 
+              label="Coolant" 
+              value={obdData?.coolant_temp ? `${obdData.coolant_temp.toFixed(1)}°C` : '-'} 
+            />
+            <ListItem 
+              label="Intake" 
+              value={obdData?.intake_temp ? `${obdData.intake_temp.toFixed(1)}°C` : '-'} 
+            />
+          </Card.Content>
+        </Card>
+      </View>
+    </ScrollView>
   );
 }
 

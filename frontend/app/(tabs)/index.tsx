@@ -3,6 +3,8 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { Thermometer, Gauge, Battery, Droplet, Bluetooth, TriangleAlert as AlertTriangle, CircleGauge as GaugeCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useState, useEffect } from 'react';
+import { OBDService, OBDData } from '../services/obd.service';
 
 const DataCard = ({ title, value, unit, Icon }: any) => (
   <View style={styles.cardContainer}>
@@ -46,46 +48,77 @@ const ErrorAlert = () => (
 
 export default function Dashboard() {
   const router = useRouter();
+  const [obdData, setObdData] = useState<OBDData | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const initOBD = async () => {
+      try {
+        const response = await OBDService.connect();
+        setIsConnected(response.status === 'connected');
+      } catch (err) {
+        setIsConnected(false);
+      }
+    };
+    initOBD();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await OBDService.getData();
+        setObdData(data);
+        setHasError(false);
+      } catch (err) {
+        setHasError(true);
+        console.error('Error fetching OBD data:', err);
+      }
+    };
+
+    const interval = setInterval(fetchData, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.title}>Dashboard</Text>
-          <BluetoothStatus connected={false} />
+          <BluetoothStatus connected={isConnected} />
         </View>
 
-        <ErrorAlert />
+        {hasError && <ErrorAlert />}
 
         <View style={styles.grid}>
           <DataCard
             title="Engine Speed"
-            value="3,500"
+            value={obdData?.rpm?.toFixed(0) || '--'}
             unit="RPM"
             Icon={GaugeCircle}
           />
           <DataCard
             title="Temperature"
-            value="195"
-            unit="°F"
+            value={obdData?.coolant_temp?.toFixed(1) || '--'}
+            unit="°C"
             Icon={Thermometer}
           />
           <DataCard
             title="Speed"
-            value="65"
-            unit="MPH"
+            value={obdData?.speed?.toFixed(1) || '--'}
+            unit="km/h"
             Icon={Gauge}
           />
           <DataCard
             title="Battery"
-            value="12.6"
+            value={obdData?.control_module_voltage?.toFixed(1) || '--'}
             unit="V"
             Icon={Battery}
           />
           <DataCard
-            title="Oil Pressure"
-            value="40"
-            unit="PSI"
+            title="Engine Load"
+            value={obdData?.engine_load?.toFixed(1) || '--'}
+            unit="%"
             Icon={Droplet}
           />
         </View>

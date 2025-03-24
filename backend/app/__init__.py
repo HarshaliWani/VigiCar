@@ -1,0 +1,1 @@
+"""VigiCar OBD API application."""

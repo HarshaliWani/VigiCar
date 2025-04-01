@@ -7,6 +7,8 @@ import ChatButton from '@/components/ChatButton';
 import { useState, useEffect, useCallback } from 'react';
 import { OBDService, OBDData } from '../services/obd.service';
 import { useFocusEffect } from '@react-navigation/native';
+import { Card } from '../components/ui/card';
+import { ListItem } from '../components/ui/list-item';
 
 const DataCard = ({ title, value, unit, Icon }: any) => (
   <View style={styles.cardContainer}>
@@ -113,13 +115,13 @@ export default function Dashboard() {
             Icon={GaugeCircle}
           />
           <DataCard
-            title="Temperature"
+            title="Coolant Temp"
             value={obdData?.coolant_temp?.toFixed(1) || '--'}
             unit="°C"
             Icon={Thermometer}
           />
           <DataCard
-            title="Speed"
+            title="Vehicle Speed"
             value={obdData?.speed?.toFixed(1) || '--'}
             unit="km/h"
             Icon={Gauge}
@@ -136,6 +138,40 @@ export default function Dashboard() {
             unit="%"
             Icon={Droplet}
           />
+          <DataCard
+            title="Throttle"
+            value={obdData?.throttle_position?.toFixed(1) || '--'}
+            unit="%"
+            Icon={GaugeCircle}
+          />
+        </View>
+
+        <View style={styles.detailsCard}>
+          <Card>
+            <Card.Header title="Engine Details" />
+            <Card.Content>
+              <ListItem 
+                label="Intake Temperature" 
+                value={obdData?.intake_temp ? `${obdData.intake_temp.toFixed(1)}°C` : '-'} 
+              />
+              <ListItem 
+                label="Timing Advance" 
+                value={obdData?.timing_advance ? `${obdData.timing_advance.toFixed(1)}°` : '-'} 
+              />
+              <ListItem 
+                label="MAF Sensor" 
+                value={obdData?.maf ? `${obdData.maf.toFixed(1)} g/s` : '-'} 
+              />
+              <ListItem 
+                label="O2 Sensor" 
+                value={obdData?.o2_s1_wr_voltage ? `${obdData.o2_s1_wr_voltage.toFixed(2)}V` : '-'} 
+              />
+              <ListItem 
+                label="Run Time" 
+                value={obdData?.run_time ? `${Math.floor(obdData.run_time / 60)}m ${obdData.run_time % 60}s` : '-'} 
+              />
+            </Card.Content>
+          </Card>
         </View>
       </ScrollView>
       
@@ -247,5 +283,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#94A3B8',
+  },
+  detailsCard: {
+    marginTop: 16,
+    marginHorizontal: 16,
   },
 });

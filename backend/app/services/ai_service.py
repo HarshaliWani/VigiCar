@@ -225,7 +225,7 @@ def generate_ai_insights(obd_data: Dict[str, Any]) -> Dict[str, Any]:
         "driving_score": driving_score,
         "eco_score": eco_score,
         "safety_score": safety_score,
-        "fuel_efficiency": engine_health,
+        "engine_health": engine_health,
         "driving_tips": driving_tips
     }
 

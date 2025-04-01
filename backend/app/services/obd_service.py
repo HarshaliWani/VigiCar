@@ -4,6 +4,7 @@ import random
 import time
 import threading
 from app.config import settings
+import bluetooth  # You may need to install 'pybluez' package
 
 class OBDService:
     connection: Optional[obd.OBD]
@@ -23,17 +24,37 @@ class OBDService:
             
         try:
             if settings.DEBUG_MODE:
-                print(f"Attempting to connect to ELM327 emulator on port {settings.OBD_PORT}")
-                ports = obd.scan_serial()
-                print(f"Available ports: {ports}")
+                if settings.CONNECTION_TYPE == "BT":
+                    print(f"Attempting to connect to ELM327 via Bluetooth: {settings.BT_MAC_ADDRESS}")
+                else:
+                    print(f"Attempting to connect to ELM327 emulator on port {settings.OBD_PORT}")
+                    ports = obd.scan_serial()
+                    print(f"Available ports: {ports}")
             
-            # Configure connection for ELM327 emulator
-            obd.logger.setLevel(obd.logging.DEBUG)  # Enable debug logging
+            # Configure connection for ELM327
+            obd.logger.setLevel(obd.logging.DEBUG)
             
             for attempt in range(settings.CONNECTION_RETRIES):
                 try:
+                    if settings.CONNECTION_TYPE == "BT":
+                        # For Bluetooth connection
+                        if not settings.BT_MAC_ADDRESS:
+                            return False, "Bluetooth MAC address not configured"
+                        
+                        portstr = f"/dev/rfcomm0"  # Default Bluetooth serial port
+                        # Create Bluetooth connection
+                        try:
+                            sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+                            sock.connect((settings.BT_MAC_ADDRESS, 1))  # Channel 1 is typically used for OBD
+                            sock.close()  # Close the raw socket as python-OBD will handle the connection
+                        except bluetooth.BluetoothError as be:
+                            return False, f"Bluetooth connection failed: {str(be)}"
+                    else:
+                        # For COM port connection
+                        portstr = settings.OBD_PORT
+
                     self.connection = obd.OBD(
-                        portstr=settings.OBD_PORT,
+                        portstr=portstr,
                         baudrate=settings.OBD_BAUDRATE,
                         fast=settings.FAST_MODE,
                         timeout=settings.TIMEOUT,
@@ -42,7 +63,7 @@ class OBDService:
                     
                     if self.connection.is_connected():
                         if settings.DEBUG_MODE:
-                            print("ELM327 Connection successful")
+                            print(f"ELM327 Connection successful via {settings.CONNECTION_TYPE}")
                             print(f"Protocol: {self.connection.protocol_name()}")
                         return True, "Connected successfully"
                 except Exception as e:

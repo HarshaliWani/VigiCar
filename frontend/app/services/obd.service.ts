@@ -54,8 +54,14 @@ export class OBDService {
     try {
       const { data } = await axios.get(`${BASE_URL}/data`);
       return data;
-    } catch (error) {
-      console.error('Error fetching OBD data:', error);
+    } catch (error: any) {
+      // Enhanced error logging
+      console.error('Error fetching OBD data:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        details: error.response?.data
+      });
       throw error;
     }
   }

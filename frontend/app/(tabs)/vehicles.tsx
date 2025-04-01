@@ -124,7 +124,7 @@ export default function VehiclesScreen() {
         />
 
         <Card>
-          <Card.Header title="Vehicle Status" />
+          <Card.Header title="Engine Status" />
           <Card.Content>
             <ListItem 
               label="Speed" 
@@ -138,19 +138,35 @@ export default function VehiclesScreen() {
               label="Engine Load" 
               value={obdData?.engine_load ? `${obdData.engine_load.toFixed(1)}%` : '-'} 
             />
+            <ListItem 
+              label="Throttle Position" 
+              value={obdData?.throttle_position ? `${obdData.throttle_position.toFixed(1)}%` : '-'} 
+            />
+            <ListItem 
+              label="Timing Advance" 
+              value={obdData?.timing_advance ? `${obdData.timing_advance.toFixed(1)}°` : '-'} 
+            />
           </Card.Content>
         </Card>
 
         <Card>
-          <Card.Header title="Temperature" />
+          <Card.Header title="Temperature Sensors" />
           <Card.Content>
             <ListItem 
               label="Coolant" 
               value={obdData?.coolant_temp ? `${obdData.coolant_temp.toFixed(1)}°C` : '-'} 
             />
             <ListItem 
-              label="Intake" 
+              label="Intake Air" 
               value={obdData?.intake_temp ? `${obdData.intake_temp.toFixed(1)}°C` : '-'} 
+            />
+            <ListItem 
+              label="Catalyst B1S1" 
+              value={obdData?.catalyst_temp_b1s1 ? `${obdData.catalyst_temp_b1s1.toFixed(1)}°C` : '-'} 
+            />
+            <ListItem 
+              label="Catalyst B1S2" 
+              value={obdData?.catalyst_temp_b1s2 ? `${obdData.catalyst_temp_b1s2.toFixed(1)}°C` : '-'} 
             />
           </Card.Content>
         </Card>

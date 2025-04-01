@@ -1,7 +1,9 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    OBD_PORT: str = "COM4"  # Updated to use the paired port
+    CONNECTION_TYPE: str = "COM"  # "COM" or "BT"
+    OBD_PORT: str = "COM4"  # COM port for wired connection
+    BT_MAC_ADDRESS: str = ""  # Bluetooth MAC address of OBD adapter
     OBD_BAUDRATE: int = 38400
     DEBUG_MODE: bool = True  # Keep debug mode on for better logging
     SIMULATION_MODE: bool = False  # Disable simulation mode for real OBD testing

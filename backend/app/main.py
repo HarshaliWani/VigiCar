@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app.config import settings
 from app.services.ai_service import ask_groq_ai, generate_ai_insights, generate_ai_diagnostics
 from typing import Dict, Any
-
+import traceback
 
 app = FastAPI(title="VigiCar OBD API")
 
@@ -52,10 +52,26 @@ async def connect_obd():
 
 @app.get("/data", response_model=OBDResponse)
 async def get_obd_data():
-    data = obd_service.get_all_data()
-    if not data:
-        raise HTTPException(status_code=500, detail="Failed to fetch OBD data")
-    return data
+    try:
+        data = obd_service.get_all_data()
+        if not data:
+            error_details = "No data received from OBD service"
+            if settings.DEBUG_MODE:
+                print(f"Error: {error_details}")
+            raise HTTPException(
+                status_code=500, 
+                detail=error_details
+            )
+        return data
+    except Exception as e:
+        error_details = f"Failed to fetch OBD data: {str(e)}"
+        if settings.DEBUG_MODE:
+            print(f"Error: {error_details}")
+            print("Traceback:", traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=error_details
+        )
 
 class AccelerationParams(BaseModel):
     target_speed: float

@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     GROQ_API_KEY_INSIGHTS: str = ""
     GROQ_API_KEY_DIAGNOSTICS: str = ""
     GROQ_API_KEY_CHAT: str = ""
+    BT_SCAN_TIMEOUT: float = 5.0  # Timeout for Bluetooth device scanning
+    BT_CONNECTION_TIMEOUT: float = 10.0  # Timeout for Bluetooth connection
 
     def validate_api_keys(self):
         if not self.GROQ_API_KEY_INSIGHTS or not self.GROQ_API_KEY_DIAGNOSTICS or not self.GROQ_API_KEY_CHAT:

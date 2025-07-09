@@ -26,11 +26,11 @@ const FuelEntry = ({ date, liters, price, location }: any) => (
         </View>
         <View style={styles.entryStat}>
           <Text style={styles.entryStatLabel}>Price/L</Text>
-          <Text style={styles.entryStatValue}>₹{price}</Text>
+          <Text style={styles.entryStatValue}>INR {price}</Text>
         </View>
         <View style={styles.entryStat}>
           <Text style={styles.entryStatLabel}>Total</Text>
-          <Text style={styles.entryStatValue}>₹{(liters * price).toFixed(2)}</Text>
+          <Text style={styles.entryStatValue}>INR {(liters * price).toFixed(2)}</Text>
         </View>
       </View>
       <View style={styles.locationContainer}>
@@ -97,14 +97,17 @@ export default function FuelScreen() {
           if (mounted) {
             const data = await OBDService.getData();
             setObdData(data);
-            setError(null); // Clear any previous error
+            setError(null);
             
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour12: false }).split(':').slice(1).join(':');
             
+            // Ensure maf value is valid
+            const mafValue = data.maf && isFinite(data.maf) ? data.maf : 0;
+            
             setTimeSeriesData(prev => ({
-              labels: [...prev.labels.slice(-5), timeStr],
-              mafData: [...prev.mafData.slice(-5), data.maf || 0],
+              labels: [...prev.labels.slice(-5), timeStr].filter(Boolean),
+              mafData: [...prev.mafData.slice(-5), mafValue],
             }));
           }
         } catch (err: any) {
@@ -146,8 +149,9 @@ export default function FuelScreen() {
   }
 
   return (
-    <ScrollView style={screens.screen}>
+    <ScrollView style={screens.screen} contentContainerStyle={{ paddingBottom: 100 }}>
       <View style={screens.content}>
+        {/* Fuel Consumption Card */}
         <Card>
           <Card.Header title="Fuel Consumption" />
           <Card.Content>
@@ -169,6 +173,8 @@ export default function FuelScreen() {
             />
           </Card.Content>
         </Card>
+
+        {/* Fuel System Card */}
         <Card>
           <Card.Header title="Fuel System" />
           <Card.Content>
@@ -198,190 +204,193 @@ export default function FuelScreen() {
             />
           </Card.Content>
         </Card>
-      </View>
-      <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Fuel History</Text>
-            <TouchableOpacity 
-              style={styles.addButton}
-              onPress={() => setIsDialogVisible(true)}>
-              <Plus size={24} color="#3B82F6" />
-            </TouchableOpacity>
-          </View>
 
-          {/* Add Dialog */}
-          <Modal
-            visible={isDialogVisible}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setIsDialogVisible(false)}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.dialogContainer}>
-                <Text style={styles.dialogTitle}>Add Fuel Fill-up</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Place"
-                  placeholderTextColor="#94A3B8"
-                  value={newFilling.place}
-                  onChangeText={(text) => setNewFilling({...newFilling, place: text})}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Liters"
-                  placeholderTextColor="#94A3B8"
-                  keyboardType="numeric"
-                  value={newFilling.liters}
-                  onChangeText={(text) => setNewFilling({...newFilling, liters: text})}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Amount"
-                  placeholderTextColor="#94A3B8"
-                  keyboardType="numeric"
-                  value={newFilling.amount}
-                  onChangeText={(text) => setNewFilling({...newFilling, amount: text})}
-                />
-                <View style={styles.dialogButtons}>
-                  <TouchableOpacity 
-                    style={[styles.dialogButton, styles.cancelButton]}
-                    onPress={() => setIsDialogVisible(false)}>
-                    <Text style={styles.dialogButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.dialogButton, styles.addButton]}
-                    onPress={handleAddFilling}>
-                    <Text style={styles.dialogButtonText}>Add</Text>
-                  </TouchableOpacity>
-                </View>
+        {/* Fuel History Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Fuel History</Text>
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => setIsDialogVisible(true)}>
+            <Plus size={24} color="#3B82F6" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Add Dialog */}
+        <Modal
+          visible={isDialogVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setIsDialogVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.dialogContainer}>
+              <Text style={styles.dialogTitle}>Add Fuel Fill-up</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Place"
+                placeholderTextColor="#94A3B8"
+                value={newFilling.place}
+                onChangeText={(text) => setNewFilling({...newFilling, place: text})}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Liters"
+                placeholderTextColor="#94A3B8"
+                keyboardType="numeric"
+                value={newFilling.liters}
+                onChangeText={(text) => setNewFilling({...newFilling, liters: text})}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Amount"
+                placeholderTextColor="#94A3B8"
+                keyboardType="numeric"
+                value={newFilling.amount}
+                onChangeText={(text) => setNewFilling({...newFilling, amount: text})}
+              />
+              <View style={styles.dialogButtons}>
+                <TouchableOpacity 
+                  style={[styles.dialogButton, styles.cancelButton]}
+                  onPress={() => setIsDialogVisible(false)}>
+                  <Text style={styles.dialogButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.dialogButton, styles.addButton]}
+                  onPress={handleAddFilling}>
+                  <Text style={styles.dialogButtonText}>Add</Text>
+                </TouchableOpacity>
               </View>
             </View>
-          </Modal>
-
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <LinearGradient
-                colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
-                style={styles.statGradient}>
-                <GasPump size={24} color="#3B82F6" />
-                <Text style={styles.statLabel}>Fuel Level</Text>
-                <Text style={styles.statValue}>{obdData?.fuel_level ? `${obdData.fuel_level.toFixed(1)}%` : '-'}</Text>
-              </LinearGradient>
-            </View>
-            <View style={styles.statCard}>
-              <LinearGradient
-                colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
-                style={styles.statGradient}>
-                <TrendingUp size={24} color="#3B82F6" />
-                <Text style={styles.statLabel}>Consumption</Text>
-                <Text style={styles.statValue}>{obdData?.maf ? `${(obdData.maf * 0.28).toFixed(1)} L/h` : '-'}</Text>
-              </LinearGradient>
-            </View>
-            <View style={styles.statCard}>
-              <LinearGradient
-                colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
-                style={styles.statGradient}>
-                <DollarSign size={24} color="#3B82F6" />
-                <Text style={styles.statLabel}>Est. Range</Text>
-                <Text style={styles.statValue}>{obdData?.fuel_level ? `${(obdData.fuel_level * 4).toFixed(0)}km` : '-'}</Text>
-              </LinearGradient>
-            </View>
           </View>
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <LinearGradient
-                colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
-                style={styles.statGradient}>
-                <GasPump size={24} color="#3B82F6" />
-                <Text style={styles.statLabel}>Engine Load</Text>
-                <Text style={styles.statValue}>{obdData?.engine_load ? `${obdData.engine_load.toFixed(1)}%` : '-'}</Text>
-              </LinearGradient>
-            </View>
-            <View style={styles.statCard}>
-              <LinearGradient
-                colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
-                style={styles.statGradient}>
-                <TrendingUp size={24} color="#3B82F6" />
-                <Text style={styles.statLabel}>MAF Rate</Text>
-                <Text style={styles.statValue}>{obdData?.maf ? `${obdData.maf.toFixed(1)} g/s` : '-'}</Text>
-              </LinearGradient>
-            </View>
-            <View style={styles.statCard}>
-              <LinearGradient
-                colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
-                style={styles.statGradient}>
-                <DollarSign size={24} color="#3B82F6" />
-                <Text style={styles.statLabel}>Efficiency</Text>
-                <Text style={styles.statValue}>{obdData?.commanded_equiv_ratio ? `${(obdData.commanded_equiv_ratio * 100).toFixed(0)}%` : '-'}</Text>
-              </LinearGradient>
-            </View>
+        </Modal>
+
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <LinearGradient
+              colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
+              style={styles.statGradient}>
+              <GasPump size={24} color="#3B82F6" />
+              <Text style={styles.statLabel}>Fuel Level</Text>
+              <Text style={styles.statValue}>{obdData?.fuel_level ? `${obdData.fuel_level.toFixed(1)}%` : '-'}</Text>
+            </LinearGradient>
           </View>
-
-          <View style={styles.chartContainer}>
-            <Text style={styles.chartTitle}>Fuel Consumption Rate (L/h)</Text>
-            <LineChart
-              data={{
-                ...chartData,
-                datasets: [{
-                  ...chartData.datasets[0],
-                  data: chartData.datasets[0].data.map(maf => maf * 0.28) // Convert MAF to L/h
-                }]
-              }}
-              width={Dimensions.get('window').width - 32}
-              height={220}
-              chartConfig={{
-                backgroundColor: 'rgba(30, 41, 59, 0.7)',
-                backgroundGradientFrom: 'rgba(30, 41, 59, 0.7)',
-                backgroundGradientTo: 'rgba(30, 41, 59, 0.7)',
-                decimalPlaces: 1,
-                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                style: {
-                  borderRadius: 16,
-                },
-                propsForDots: {
-                  r: '6',
-                  strokeWidth: '2',
-                  stroke: '#3B82F6',
-                },
-              }}
-              bezier
-              style={styles.chart}
-            />
+          <View style={styles.statCard}>
+            <LinearGradient
+              colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
+              style={styles.statGradient}>
+              <TrendingUp size={24} color="#3B82F6" />
+              <Text style={styles.statLabel}>Consumption</Text>
+              <Text style={styles.statValue}>{obdData?.maf ? `${(obdData.maf * 0.28).toFixed(1)} L/h` : '-'}</Text>
+            </LinearGradient>
           </View>
+          <View style={styles.statCard}>
+            <LinearGradient
+              colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
+              style={styles.statGradient}>
+              <DollarSign size={24} color="#3B82F6" />
+              <Text style={styles.statLabel}>Est. Range</Text>
+              <Text style={styles.statValue}>{obdData?.fuel_level ? `${(obdData.fuel_level * 4).toFixed(0)}km` : '-'}</Text>
+            </LinearGradient>
+          </View>
+        </View>
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <LinearGradient
+              colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
+              style={styles.statGradient}>
+              <GasPump size={24} color="#3B82F6" />
+              <Text style={styles.statLabel}>Engine Load</Text>
+              <Text style={styles.statValue}>{obdData?.engine_load ? `${obdData.engine_load.toFixed(1)}%` : '-'}</Text>
+            </LinearGradient>
+          </View>
+          <View style={styles.statCard}>
+            <LinearGradient
+              colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
+              style={styles.statGradient}>
+              <TrendingUp size={24} color="#3B82F6" />
+              <Text style={styles.statLabel}>MAF Rate</Text>
+              <Text style={styles.statValue}>{obdData?.maf ? `${obdData.maf.toFixed(1)} g/s` : '-'}</Text>
+            </LinearGradient>
+          </View>
+          <View style={styles.statCard}>
+            <LinearGradient
+              colors={['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.05)']}
+              style={styles.statGradient}>
+              <DollarSign size={24} color="#3B82F6" />
+              <Text style={styles.statLabel}>Efficiency</Text>
+              <Text style={styles.statValue}>{obdData?.commanded_equiv_ratio ? `${(obdData.commanded_equiv_ratio * 100).toFixed(0)}%` : '-'}</Text>
+            </LinearGradient>
+          </View>
+        </View>
 
-          <Text style={styles.sectionTitle}>Recent Fill-ups</Text>
-          {fillings.map((filling) => (
-            <FuelEntry
-              key={filling.id}
-              date={filling.date}
-              liters={filling.liters}
-              price={filling.price}
-              location={filling.location}
-            />
-          ))}
-
-          <FuelEntry
-            date="Today, 2:30 PM"
-            liters={47.3}
-            price={102.5}
-            location="HP - Ring Road"
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Fuel Consumption Rate (L/h)</Text>
+          <LineChart
+            data={{
+              labels: timeSeriesData.labels.length ? timeSeriesData.labels : ['0'],
+              datasets: [{
+                data: timeSeriesData.mafData.length ? 
+                  timeSeriesData.mafData
+                    .map(maf => (isFinite(maf) ? maf : 0) * 0.28)
+                    .filter(val => isFinite(val)) : 
+                  [0],
+                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                strokeWidth: 2,
+              }]
+            }}
+            width={Dimensions.get('window').width - 32}
+            height={220}
+            chartConfig={{
+              backgroundColor: 'rgba(30, 41, 59, 0.7)',
+              backgroundGradientFrom: 'rgba(30, 41, 59, 0.7)',
+              backgroundGradientTo: 'rgba(30, 41, 59, 0.7)',
+              decimalPlaces: 1,
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: '6',
+                strokeWidth: '2',
+                stroke: '#3B82F6',
+              },
+            }}
+            bezier
+            style={styles.chart}
           />
+        </View>
 
+        <Text style={styles.sectionTitle}>Recent Fill-ups</Text>
+        {fillings.map((filling) => (
           <FuelEntry
-            date="10 Mar, 2024"
-            liters={40.9}
-            price={102.7}
-            location="Indian Oil"
+            key={filling.id}
+            date={filling.date}
+            liters={filling.liters}
+            price={filling.price}
+            location={filling.location}
           />
+        ))}
 
-          <FuelEntry
-            date="3 Mar, 2024"
-            liters={42.4}
-            price={102.3}
-            location="Bharat Petroleum"
-          />
-        </ScrollView>
+        <FuelEntry
+          date="Today, 2:30 PM"
+          liters={47.3}
+          price={102.5}
+          location="HP - Ring Road"
+        />
+
+        <FuelEntry
+          date="10 Mar, 2024"
+          liters={40.9}
+          price={102.7}
+          location="Indian Oil"
+        />
+
+        <FuelEntry
+          date="3 Mar, 2024"
+          liters={42.4}
+          price={102.3}
+          location="Bharat Petroleum"
+        />
       </View>
     </ScrollView>
   );
@@ -580,9 +589,6 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: '#4B5563',
-  },
-  addButton: {
-    backgroundColor: '#3B82F6',
   },
   dialogButtonText: {
     color: '#FFFFFF',

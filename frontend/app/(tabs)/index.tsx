@@ -3,7 +3,6 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { Thermometer, Gauge, Battery, Droplet, Bluetooth, TriangleAlert as AlertTriangle, CircleGauge as GaugeCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import ChatButton from '@/components/ChatButton';
 import { useState, useEffect, useCallback } from 'react';
 import { OBDService, OBDData } from '../services/obd.service';
 import { useFocusEffect } from '@react-navigation/native';
@@ -99,7 +98,7 @@ export default function Dashboard() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Dashboard</Text>
           <BluetoothStatus connected={isConnected} />
@@ -174,11 +173,7 @@ export default function Dashboard() {
           </Card>
         </View>
       </ScrollView>
-      
-      
-      <ChatButton />
     </View>
-    
   );
 }
 

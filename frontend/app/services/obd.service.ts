@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const BASE_URL = "http://192.168.0.112:8000" 
+export const BASE_URL = "http://192.168.212.189:8000" 
 
 export interface OBDData {
   speed?: number;

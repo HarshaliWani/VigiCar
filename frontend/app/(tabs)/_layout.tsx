@@ -15,64 +15,70 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarBackground: () =>
-          Platform.OS === 'ios' ? (
-            <BlurView intensity={100} style={StyleSheet.absoluteFill} />
-          ) : undefined,
-        tabBarActiveTintColor: '#3B82F6',
-        tabBarInactiveTintColor: '#64748B',
-        tabBarLabelStyle: styles.tabLabel,
+      headerShown: false,
+      tabBarStyle: styles.tabBar,
+      tabBarBackground: () =>
+        Platform.OS === 'ios' ? (
+        <BlurView intensity={100} style={StyleSheet.absoluteFill} />
+        ) : undefined,
+      tabBarActiveTintColor: '#3B82F6',
+      tabBarInactiveTintColor: '#64748B',
+      tabBarLabelStyle: styles.tabLabel,
       }}>
       <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ focused }) => <TabBarIcon Icon={Gauge2} focused={focused} />,
-        }}
+      name="index"
+      options={{
+        title: 'Dashboard',
+        tabBarIcon: ({ focused }) => <TabBarIcon Icon={Gauge2} focused={focused} />,
+      }}
       />
       <Tabs.Screen
-        name="diagnostics"
-        options={{
-          title: 'Diagnostics',
-          tabBarIcon: ({ focused }) => <TabBarIcon Icon={AlertTriangle} focused={focused} />,
-        }}
+      name="diagnostics"
+      options={{
+        title: 'Diagnostics',
+        tabBarIcon: ({ focused }) => <TabBarIcon Icon={AlertTriangle} focused={focused} />,
+      }}
       />
       <Tabs.Screen
-        name="insights"
-        options={{
-          title: 'Insights',
-          tabBarIcon: ({ focused }) => <TabBarIcon Icon={LineChart} focused={focused} />,
-        }}
+      name="insights"
+      options={{
+        title: 'Insights',
+        tabBarIcon: ({ focused }) => <TabBarIcon Icon={LineChart} focused={focused} />,
+      }}
       />
       <Tabs.Screen
-        name="vehicles"
-        options={{
-          title: 'Vehicles',
-          tabBarIcon: ({ focused }) => <TabBarIcon Icon={Car} focused={focused} />,
-        }}
+      name="vehicles"
+      options={{
+        title: 'Vehicles',
+        tabBarIcon: ({ focused }) => <TabBarIcon Icon={Car} focused={focused} />,
+      }}
       />
       <Tabs.Screen
-        name="fuel"
-        options={{
-          title: 'Fuel',
-          tabBarIcon: ({ focused }) => <TabBarIcon Icon={GasPump} focused={focused} />,
-        }}
+      name="fuel"
+      options={{
+        title: 'Fuel',
+        tabBarIcon: ({ focused }) => <TabBarIcon Icon={GasPump} focused={focused} />,
+      }}
       />
       <Tabs.Screen
-  name="history"
-  options={{
-    href: null, // This hides it from the tab bar
-  }}
-/>
-
+      name="history"
+      options={{
+        href: null, // This hides it from the tab bar
+      }}
+      />
       <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ focused }) => <TabBarIcon Icon={Settings} focused={focused} />,
-        }}
+      name="settings"
+      options={{
+        title: 'Settings',
+        tabBarIcon: ({ focused }) => <TabBarIcon Icon={Settings} focused={focused} />,
+      }}
+      />
+      <Tabs.Screen
+      name="chat"
+      options={{
+        title: 'Chat',
+        tabBarIcon: ({ focused }) => <TabBarIcon Icon={require('lucide-react-native').MessageSquare} focused={focused} />,
+      }}
       />
     </Tabs>
   );

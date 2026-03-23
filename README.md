@@ -26,7 +26,9 @@ AI-powered connected-car app that combines real-time OBD-II telemetry with smart
 
 <img width="250" height="535" alt="image" src="https://github.com/user-attachments/assets/7abd07de-fd9f-40a5-99e5-3e3fa42fc06d" />               <img width="250" height="535" alt="image" src="https://github.com/user-attachments/assets/639ac6a1-c8c9-4946-bd6b-fc1e848a0196" />
 
-
+## 📈 Achievements
+- Winner in college level project competition
+- Finalist in inter-college project competition at Thane
 
 ## 📋 Setup
 ```bash

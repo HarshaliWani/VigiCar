@@ -1,7 +1,4 @@
-# VigiCar
-[![Stars](https://img.shields.io/github/stars/your-username/VigiCar?style=for-the-badge)][repo] [![Forks](https://img.shields.io/github/forks/your-username/VigiCar?style=for-the-badge)][repo]
-
-![Demo GIF](https://via.placeholder.com/1200x600?text=VigiCar+Demo) (or Live: [url])
+# VigiCar - Smart Car Diagnostics and Maintenance Solution
 
 ## 🎯 Overview
 AI-powered connected-car app that combines real-time OBD-II telemetry with smart diagnostics, driving insights, and in-app assistant guidance.
@@ -27,8 +24,9 @@ AI-powered connected-car app that combines real-time OBD-II telemetry with smart
 - AI-generated diagnostics + driving-score insights from live sensor values
 - End-to-end full-stack prototype (mobile + backend) ready for iteration and deployment
 
-## 🤝 Live | GitHub
-[Deploy](https://your-live-url.example) | [Repo Stats][repo]
+<img width="250" height="535" alt="image" src="https://github.com/user-attachments/assets/7abd07de-fd9f-40a5-99e5-3e3fa42fc06d" />               <img width="250" height="535" alt="image" src="https://github.com/user-attachments/assets/639ac6a1-c8c9-4946-bd6b-fc1e848a0196" />
+
+
 
 ## 📋 Setup
 ```bash
